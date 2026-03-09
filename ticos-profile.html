@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TICOS · Community Profile Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1A1A1A;
+    --navy: #1C2B35;
+    --navy-light: #243544;
+    --fog: #8AAAB8;
+    --paper: #F8F5F0;
+    --white: #FFFFFF;
+    --sienna: #8B5E3C;
+    --forest: #3A6B5D;
+    --slate: #4A5B8C;
+    --plum: #7A3B5A;
+    --gold: #5E4A1A;
+    --teal: #2B5D7A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Lora', Georgia, serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── PASSWORD SCREEN ── */
+  #lock-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--navy);
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .lock-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 52px 48px;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    backdrop-filter: blur(12px);
+  }
+
+  .lock-cross {
+    font-size: 36px;
+    color: var(--sienna);
+    margin-bottom: 20px;
+    display: block;
+    letter-spacing: -2px;
+  }
+
+  .lock-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 6px;
+  }
+
+  .lock-sub {
+    font-size: 13px;
+    color: var(--fog);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+
+  .lock-input {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: white;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 0.15em;
+    font-family: 'Lora', serif;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 14px;
+  }
+
+  .lock-input:focus { border-color: var(--sienna); }
+  .lock-input::placeholder { color: rgba(255,255,255,0.25); letter-spacing: 0.05em; }
+
+  .lock-btn {
+    width: 100%;
+    background: var(--sienna);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.03em;
+  }
+
+  .lock-btn:hover { background: #7a5234; }
+  .lock-btn:active { transform: scale(0.98); }
+
+  .lock-error {
+    color: #e07070;
+    font-size: 13px;
+    margin-top: 12px;
+    min-height: 18px;
+    font-style: italic;
+  }
+
+  /* ── APP SHELL ── */
+  #app { display: none; }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--navy);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+  }
+
+  .topbar-brand { display: flex; flex-direction: column; }
+
+  .topbar-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.01em;
+  }
+
+  .topbar-sub {
+    font-size: 10px;
+    color: var(--fog);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-top: 1px;
+  }
+
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+  .topbar-badge {
+    font-size: 12px;
+    color: var(--fog);
+  }
+
+  .btn-outline {
+    background: rgba(255,255,255,0.07);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: 'Lora', serif;
+  }
+
+  .btn-outline:hover { background: rgba(255,255,255,0.13); }
+
+  .btn-preview {
+    background: var(--sienna);
+    border-color: var(--sienna);
+  }
+
+  .btn-preview:hover { background: #7a5234; }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; min-height: calc(100vh - 60px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 230px;
+    flex-shrink: 0;
+    background: var(--navy);
+    padding: 24px 0;
+    position: sticky;
+    top: 60px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-label {
+    padding: 0 20px 12px;
+    font-size: 10px;
+    color: #3D5A6A;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .sidebar-item {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    padding: 11px 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s;
+    color: var(--fog);
+  }
+
+  .sidebar-item:hover { background: rgba(255,255,255,0.04); color: #cde; }
+
+  .sidebar-item.active {
+    background: rgba(255,255,255,0.07);
+    color: white;
+  }
+
+  .sidebar-icon { font-size: 15px; flex-shrink: 0; }
+
+  .sidebar-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    flex: 1;
+    line-height: 1.3;
+  }
+
+  .sidebar-count {
+    border-radius: 10px;
+    font-size: 10px;
+    padding: 1px 7px;
+    color: white;
+    font-family: sans-serif;
+  }
+
+  .sidebar-divider {
+    margin: 18px 20px;
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .sidebar-facts { padding: 0 20px 20px; }
+
+  .sidebar-facts-label {
+    font-size: 10px;
+    color: #3D5A6A;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+
+  .fact-row { margin-bottom: 9px; }
+
+  .fact-key {
+    font-size: 10px;
+    color: #3D5A6A;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .fact-val { font-size: 12px; color: #8AAAB8; margin-top: 1px; }
+
+  /* ── MAIN ── */
+  .main { flex: 1; padding: 36px 40px; max-width: 840px; }
+
+  .section-header { margin-bottom: 28px; }
+
+  .section-title-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-icon { font-size: 26px; }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .section-prompt {
+    border-left: 3px solid currentColor;
+    padding: 12px 18px;
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+    font-style: italic;
+    color: #555;
+    line-height: 1.7;
+  }
+
+  /* ── CARDS ── */
+  .response-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s;
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+
+  .card-identity { flex: 1; }
+
+  .card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .card-role { font-size: 12px; color: #999; margin-top: 2px; }
+
+  .card-meta { font-size: 11px; color: #bbb; margin-top: 3px; }
+
+  .card-actions { display: flex; gap: 7px; flex-shrink: 0; }
+
+  .card-btn {
+    background: none;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 4px 11px;
+    font-size: 12px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.15s;
+    font-family: 'Lora', serif;
+  }
+
+  .card-btn:hover { background: #f5f5f5; }
+
+  .card-btn-danger { color: #c05050; border-color: #f0d0d0; }
+  .card-btn-danger:hover { background: #fff0f0; }
+
+  .card-text {
+    width: 100%;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.75;
+    color: #2a2a2a;
+    font-family: 'Lora', Georgia, serif;
+    resize: vertical;
+    outline: none;
+    background: #FAFAFA;
+    transition: border-color 0.2s;
+  }
+
+  .card-text:focus { border-color: #aaa; background: white; }
+
+  .editing-inputs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+
+  .edit-input {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: 'Lora', serif;
+  }
+
+  .edit-input:focus { border-color: #aaa; }
+  .edit-input-name { width: 150px; font-family: 'Playfair Display', serif; font-weight: 600; }
+  .edit-input-role { width: 200px; color: #666; }
+
+  /* ── OTHER MEMBERS' RESPONSES ── */
+  .others-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #eee;
+  }
+
+  .others-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #aaa;
+    margin-bottom: 16px;
+  }
+
+  .other-card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    border-left: 3px solid currentColor;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .other-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .other-role { font-size: 11px; color: #aaa; margin-bottom: 8px; }
+
+  .other-text {
+    font-size: 14px;
+    line-height: 1.75;
+    color: #444;
+    white-space: pre-wrap;
+  }
+
+  /* ── ADD BUTTON ── */
+  .add-btn {
+    width: 100%;
+    background: none;
+    border: 2px dashed #ccc;
+    border-radius: 12px;
+    padding: 17px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Playfair Display', serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    color: #aaa;
+    margin-top: 4px;
+  }
+
+  .add-btn:hover { border-color: #aaa; color: #666; background: rgba(0,0,0,0.02); }
+
+  /* ── CONTEXT BOX ── */
+  .context-box {
+    margin-top: 32px;
+    background: white;
+    border-radius: 12px;
+    padding: 18px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .context-label {
+    font-size: 10px;
+    color: #bbb;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+
+  .context-text {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.85;
+  }
+
+  /* ── PREVIEW MODE ── */
+  #preview-view { display: none; padding: 48px 28px; }
+
+  .preview-inner { max-width: 760px; margin: 0 auto; }
+
+  .preview-header { text-align: center; margin-bottom: 52px; }
+
+  .preview-logo {
+    font-size: 28px;
+    color: var(--sienna);
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .preview-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .preview-subtitle {
+    font-size: 13px;
+    color: #aaa;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .preview-rule {
+    width: 60px;
+    height: 2px;
+    background: var(--sienna);
+    margin: 20px auto;
+    border: none;
+  }
+
+  .preview-intro {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.85;
+    max-width: 600px;
+    margin: 0 auto 28px;
+  }
+
+  .preview-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .preview-fact {
+    background: #F5F0EB;
+    border-radius: 8px;
+    padding: 5px 13px;
+    font-size: 12px;
+  }
+
+  .preview-fact-key { color: var(--sienna); font-weight: 600; }
+  .preview-fact-val { color: #555; }
+
+  .preview-section { margin-bottom: 52px; }
+
+  .preview-sec-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .preview-sec-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+
+  .preview-sec-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .preview-sec-prompt {
+    font-size: 13px;
+    color: #aaa;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  .preview-responses { padding-left: 20px; }
+
+  .preview-response { margin-bottom: 28px; }
+
+  .preview-resp-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .preview-resp-text {
+    font-size: 15px;
+    line-height: 1.85;
+    color: #333;
+    white-space: pre-wrap;
+  }
+
+  /* ── LOADING ── */
+  .loading-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--navy);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    z-index: 999;
+    animation: slideUp 0.25s ease;
+    pointer-events: none;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .main { padding: 24px 20px; }
+    .topbar { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div id="lock-screen">
+  <div class="lock-card">
+    <span class="lock-cross">✦</span>
+    <div class="lock-title">TICOS Profile Builder</div>
+    <div class="lock-sub">Pastor Search Team · Private Access</div>
+    <input
+      type="password"
+      class="lock-input"
+      id="pw-input"
+      placeholder="Enter passphrase"
+      autocomplete="off"
+    />
+    <button class="lock-btn" id="pw-btn">Enter</button>
+    <div class="lock-error" id="pw-error"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-title">TICOS · Community Profile Builder</div>
+      <div class="topbar-sub">Pastor Search Team</div>
+    </div>
+    <div class="topbar-actions">
+      <span class="topbar-badge" id="response-count"></span>
+      <button class="btn-outline" id="logout-btn">Lock</button>
+      <button class="btn-outline btn-preview" id="preview-btn">Preview Profile →</button>
+    </div>
+  </div>
+
+  <!-- BUILD VIEW -->
+  <div id="build-view">
+    <div class="layout">
+
+      <!-- SIDEBAR -->
+      <div class="sidebar" id="sidebar">
+        <div class="sidebar-label">Profile Sections</div>
+        <!-- injected by JS -->
+        <hr class="sidebar-divider">
+        <div class="sidebar-facts">
+          <div class="sidebar-facts-label">Quick Facts</div>
+          <div class="fact-row"><div class="fact-key">City</div><div class="fact-val">Strasbourg, Alsace, France</div></div>
+          <div class="fact-row"><div class="fact-key">Affiliation</div><div class="fact-val">C&MA · Féd. Évangélique</div></div>
+          <div class="fact-row"><div class="fact-key">Service</div><div class="fact-val">Sundays 10:00 AM</div></div>
+          <div class="fact-row"><div class="fact-key">Language</div><div class="fact-val">English + French translation</div></div>
+          <div class="fact-row"><div class="fact-key">Address</div><div class="fact-val">12 Rue du Cygne, 67000</div></div>
+        </div>
+      </div>
+
+      <!-- MAIN -->
+      <div class="main" id="main-content">
+        <!-- injected by JS -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PREVIEW VIEW -->
+  <div id="preview-view">
+    <div class="preview-inner" id="preview-inner">
+      <!-- injected by JS -->
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  CONFIG — change these before deploying
+// ══════════════════════════════════════════════════
+const PASSWORD = "T!(0$PSt26";          // ← change this!
+const STORAGE_KEY = "ticos_profile_v1"; // shared storage key
+
+// ══════════════════════════════════════════════════
+//  SECTIONS
+// ══════════════════════════════════════════════════
+const SECTIONS = [
+  {
+    id: "congregation",
+    label: "Our Congregation",
+    icon: "✦",
+    color: "#8B5E3C",
+    light: "#FDF6EE",
+    prompt: "Describe who makes up our church family — the nationalities, life stages, and people you see every Sunday. What makes our community unique?",
+    context: "TICOS draws heavily from Strasbourg's large international community — diplomats, EU staff, students, academics, and expats from dozens of nations. Non-nationals make up nearly 14% of Strasbourg's population. The congregation's English-language services with French translation reflect this diversity."
+  },
+  {
+    id: "strasbourg",
+    label: "Strasbourg & Its Context",
+    icon: "◈",
+    color: "#3A6B5D",
+    light: "#EEF6F3",
+    prompt: "What should a pastor know about living and ministering in Strasbourg? Think about the city's international character, its European institutions, its history, its spiritual landscape.",
+    context: "Strasbourg seats the European Parliament and Council of Europe. Alsace has the most Protestants in France and uniquely retains the Concordat (the 1905 laïcité law doesn't apply here). The University of Strasbourg has France's only accredited Catholic and Protestant theology faculties. The city's 15–29 demographic is its largest at 28% of population."
+  },
+  {
+    id: "strengths",
+    label: "Our Strengths & Gifts",
+    icon: "❋",
+    color: "#4A5B8C",
+    light: "#EEF0F8",
+    prompt: "What does TICOS do really well? What gifts, ministries, or qualities are you most proud of?",
+    context: "TICOS has active Life Groups, Youth & Children's Ministry, Worship, Hospitality, Prayer & Care, Events, Outreach, and a Translation Team. Its mission — welcoming all nations and equipping them to serve wherever God sends them — means it regularly 'sends' members into ministry around the world."
+  },
+  {
+    id: "challenges",
+    label: "Our Challenges & Needs",
+    icon: "◎",
+    color: "#7A3B5A",
+    light: "#F8EEF4",
+    prompt: "Where do we struggle? What gaps in leadership, discipleship, or community do we hope a new pastor can help address?",
+    context: "International churches face a perpetual 'revolving door' — EU staff and expat families often stay only 2–4 years. Building deep discipleship, long-term leadership, and financial stability requires specific pastoral wisdom. Ministry in France also means navigating a broadly secular culture and complex French bureaucracy."
+  },
+  {
+    id: "pastor",
+    label: "The Pastor We're Praying For",
+    icon: "◇",
+    color: "#5E4A1A",
+    light: "#F7F2E6",
+    prompt: "What qualities, gifts, and calling do you hope our next pastor will carry? What would make you say, 'That's the one'?",
+    context: "TICOS is C&MA — historically emphasizing the Fourfold Gospel (Christ as Savior, Sanctifier, Healer, Coming King) and global missions. A pastor here serves an English-speaking congregation in a French city. Cross-cultural competency, comfort with diversity, and a heart for the nations are essential."
+  },
+  {
+    id: "vision",
+    label: "Our Hope for the Future",
+    icon: "△",
+    color: "#2B5D7A",
+    light: "#EEF4F8",
+    prompt: "Where do you hope TICOS is in 5–10 years? What does a thriving TICOS look like to you?",
+    context: "Strasbourg is growing — projected to exceed 490,000 in the metro area. Its young population and constant flow of international residents creates an extraordinary gospel opportunity. TICOS sits at the crossroads of Europe, hosting policymakers, diplomats, refugees, and students from around the world."
+  }
+];
+
+// ══════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════
+let activeSection = SECTIONS[0].id;
+let viewMode = "build"; // "build" | "preview"
+let allResponses = {}; // { [sectionId]: [ { id, name, role, text, ts } ] }
+let myName = "";
+let myRole = "";
+let saveTimer = null;
+
+// ══════════════════════════════════════════════════
+//  STORAGE (localStorage with shared-data simulation)
+//  Since this is GitHub Pages (static), we use localStorage.
+//  All members on the same page URL share localStorage on their
+//  own device. For true shared storage, they'd need a backend.
+//  We simulate "team sharing" by encoding data in URL fragments
+//  when exporting, and allow importing via URL hash on load.
+//  PRIMARY storage: localStorage so your own edits persist.
+// ══════════════════════════════════════════════════
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allResponses));
+  } catch(e) {}
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) allResponses = JSON.parse(raw);
+  } catch(e) { allResponses = {}; }
+  // Ensure all sections exist
+  SECTIONS.forEach(s => { if (!allResponses[s.id]) allResponses[s.id] = []; });
+}
+
+function scheduleSave() {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saveData(); showToast("Saved ✓"); }, 800);
+}
+
+// ══════════════════════════════════════════════════
+//  SHARED EXPORT / IMPORT via JSON download & upload
+// ══════════════════════════════════════════════════
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(allResponses, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "ticos-profile-responses.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      // Merge: add responses not already present (by id)
+      SECTIONS.forEach(s => {
+        if (!imported[s.id]) return;
+        const existing = new Set((allResponses[s.id] || []).map(r => r.id));
+        const newItems = imported[s.id].filter(r => !existing.has(r.id));
+        allResponses[s.id] = [...(allResponses[s.id] || []), ...newItems];
+      });
+      saveData();
+      renderAll();
+      showToast("Responses imported & merged ✓");
+    } catch(err) {
+      showToast("Import failed — invalid file");
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ══════════════════════════════════════════════════
+//  PASSWORD
+// ══════════════════════════════════════════════════
+function checkPassword(pw) { return pw === PASSWORD; }
+
+function unlock() {
+  const pw = document.getElementById("pw-input").value;
+  if (checkPassword(pw)) {
+    sessionStorage.setItem("ticos_auth", "1");
+    document.getElementById("lock-screen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    loadData();
+    renderAll();
+  } else {
+    document.getElementById("pw-error").textContent = "Incorrect passphrase. Please try again.";
+    document.getElementById("pw-input").value = "";
+    document.getElementById("pw-input").focus();
+    setTimeout(() => { document.getElementById("pw-error").textContent = ""; }, 3000);
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════
+let toastEl = null;
+let toastTimeout = null;
+function showToast(msg) {
+  if (toastEl) toastEl.remove();
+  toastEl = document.createElement("div");
+  toastEl.className = "toast";
+  toastEl.textContent = msg;
+  document.body.appendChild(toastEl);
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { if (toastEl) toastEl.remove(); }, 2200);
+}
+
+// ══════════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════════
+function renderAll() {
+  renderSidebar();
+  renderMain();
+  renderResponseCount();
+}
+
+function renderResponseCount() {
+  let total = 0;
+  SECTIONS.forEach(s => { total += (allResponses[s.id] || []).filter(r => r.text && r.text.trim()).length; });
+  const el = document.getElementById("response-count");
+  if (el) el.textContent = total > 0 ? `${total} response${total !== 1 ? "s" : ""}` : "";
+}
+
+function renderSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  // Remove old section buttons
+  const existing = sidebar.querySelectorAll(".sidebar-item");
+  existing.forEach(e => e.remove());
+
+  const label = sidebar.querySelector(".sidebar-label");
+
+  SECTIONS.forEach(sec => {
+    const count = (allResponses[sec.id] || []).filter(r => r.text && r.text.trim()).length;
+    const btn = document.createElement("button");
+    btn.className = "sidebar-item" + (sec.id === activeSection ? " active" : "");
+    btn.style.borderLeftColor = sec.id === activeSection ? sec.color : "transparent";
+    btn.innerHTML = `
+      <span class="sidebar-icon" style="color:${sec.id === activeSection ? sec.color : "#3D5A6A"}">${sec.icon}</span>
+      <span class="sidebar-name">${sec.label}</span>
+      ${count > 0 ? `<span class="sidebar-count" style="background:${sec.color}">${count}</span>` : ""}
+    `;
+    btn.addEventListener("click", () => {
+      activeSection = sec.id;
+      renderAll();
+    });
+    sidebar.insertBefore(btn, label.nextSibling);
+  });
+}
+
+function renderMain() {
+  if (viewMode === "preview") {
+    document.getElementById("build-view").style.display = "none";
+    document.getElementById("preview-view").style.display = "block";
+    document.getElementById("preview-btn").textContent = "← Back to Edit";
+    renderPreview();
+    return;
+  }
+  document.getElementById("build-view").style.display = "block";
+  document.getElementById("preview-view").style.display = "none";
+  document.getElementById("preview-btn").textContent = "Preview Profile →";
+
+  const sec = SECTIONS.find(s => s.id === activeSection);
+  const container = document.getElementById("main-content");
+  const myResponses = (allResponses[sec.id] || []);
+
+  let html = `
+    <div class="section-header">
+      <div class="section-title-row">
+        <span class="section-icon" style="color:${sec.color}">${sec.icon}</span>
+        <h1 class="section-title">${sec.label}</h1>
+      </div>
+      <div class="section-prompt" style="background:${sec.light}; border-color:${sec.color}; color:#555">
+        ${sec.prompt}
+      </div>
+    </div>
+  `;
+
+  // My responses editable cards
+  myResponses.forEach(resp => {
+    html += renderCard(resp, sec);
+  });
+
+  // Add button
+  html += `
+    <button class="add-btn" id="add-btn" style="border-color:${sec.color}44; color:${sec.color}99">
+      <span style="font-size:20px;line-height:1">+</span>
+      Add your response
+    </button>
+  `;
+
+  // Context box
+  html += `
+    <div class="context-box">
+      <div class="context-label">Research context — for reference</div>
+      <div class="context-text">${sec.context}</div>
+    </div>
+  `;
+
+  // Import / Export panel
+  html += `
+    <div class="context-box" style="margin-top:16px">
+      <div class="context-label">Team Sharing</div>
+      <div class="context-text" style="margin-bottom:12px">Share your responses with the rest of the team by exporting your data file, then each member imports it to merge everyone's answers.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="card-btn" id="export-btn" style="font-size:13px;padding:7px 16px">⬇ Export my responses</button>
+        <label class="card-btn" style="font-size:13px;padding:7px 16px;cursor:pointer">
+          ⬆ Import teammate's file
+          <input type="file" accept=".json" style="display:none" id="import-input">
+        </label>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+
+  // Bind add button
+  document.getElementById("add-btn").addEventListener("click", () => {
+    const newResp = { id: Date.now().toString(), name: "", role: "", text: "", ts: new Date().toISOString() };
+    allResponses[sec.id].push(newResp);
+    saveData();
+    renderAll();
+    // Focus first input of new card
+    setTimeout(() => {
+      const inputs = document.querySelectorAll(".edit-input-name");
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    }, 50);
+  });
+
+  // Bind export
+  document.getElementById("export-btn").addEventListener("click", exportJSON);
+
+  // Bind import
+  document.getElementById("import-input").addEventListener("change", (e) => {
+    if (e.target.files[0]) importJSON(e.target.files[0]);
+  });
+
+  // Bind card events
+  bindCardEvents(sec);
+}
+
+function renderCard(resp, sec) {
+  return `
+    <div class="response-card" data-id="${resp.id}">
+      <div class="card-top">
+        <div class="card-identity">
+          <div class="editing-inputs">
+            <input class="edit-input edit-input-name" data-id="${resp.id}" data-field="name"
+              value="${escHtml(resp.name)}" placeholder="Your name" />
+            <input class="edit-input edit-input-role" data-id="${resp.id}" data-field="role"
+              value="${escHtml(resp.role)}" placeholder="Role (e.g. Elder, Parent, Student)" />
+          </div>
+          ${resp.ts ? `<div class="card-meta">${formatDate(resp.ts)}</div>` : ""}
+        </div>
+        <div class="card-actions">
+          <button class="card-btn card-btn-danger" data-delete="${resp.id}">Remove</button>
+        </div>
+      </div>
+      <textarea class="card-text" data-id="${resp.id}" data-field="text"
+        rows="6" placeholder="Share your thoughts here…">${escHtml(resp.text)}</textarea>
+    </div>
+  `;
+}
+
+function bindCardEvents(sec) {
+  // Text and input changes
+  document.querySelectorAll(".edit-input, .card-text").forEach(el => {
+    el.addEventListener("input", (e) => {
+      const id = e.target.dataset.id;
+      const field = e.target.dataset.field;
+      const resp = allResponses[sec.id].find(r => r.id === id);
+      if (resp) {
+        resp[field] = e.target.value;
+        resp.ts = new Date().toISOString();
+        scheduleSave();
+        renderResponseCount();
+        renderSidebar();
+      }
+    });
+  });
+
+  // Delete buttons
+  document.querySelectorAll("[data-delete]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const id = e.target.dataset.delete;
+      if (confirm("Remove this response?")) {
+        allResponses[sec.id] = allResponses[sec.id].filter(r => r.id !== id);
+        saveData();
+        renderAll();
+      }
+    });
+  });
+}
+
+function renderPreview() {
+  const sec = SECTIONS.find(s => s.id === activeSection);
+  let html = `
+    <div class="preview-header">
+      <span class="preview-logo">✦</span>
+      <div class="preview-title">TICOS Community Profile</div>
+      <div class="preview-subtitle">Trinity International Church of Strasbourg · Pastor Search</div>
+      <hr class="preview-rule">
+      <p class="preview-intro">Trinity International Church of Strasbourg (TICOS) exists to welcome people from all nations and bring them into a liberating and transformative relationship with Jesus Christ, discipling them and equipping them to be good and faithful servants in the kingdom of God wherever He may send them.</p>
+      <div class="preview-facts">
+        ${[
+          ["Affiliation","C&MA · Féd. Évangélique de France"],
+          ["Location","12 Rue du Cygne, Strasbourg (67000)"],
+          ["Language","English (French translation)"],
+          ["Sunday Service","10:00 AM"],
+          ["City Population","~276,000 (metro ~770,000)"],
+          ["European Seat","Parliament & Council of Europe"],
+        ].map(([k,v]) => `<div class="preview-fact"><span class="preview-fact-key">${k}: </span><span class="preview-fact-val">${v}</span></div>`).join("")}
+      </div>
+    </div>
+  `;
+
+  let hasAny = false;
+  SECTIONS.forEach(s => {
+    const responses = (allResponses[s.id] || []).filter(r => r.text && r.text.trim());
+    if (!responses.length) return;
+    hasAny = true;
+    html += `
+      <div class="preview-section">
+        <div class="preview-sec-header">
+          <span class="preview-sec-icon" style="color:${s.color}">${s.icon}</span>
+          <div>
+            <div class="preview-sec-title">${s.label}</div>
+            <div class="preview-sec-prompt">${s.prompt}</div>
+          </div>
+        </div>
+        <div class="preview-responses" style="border-left:3px solid ${s.color}">
+          ${responses.map(r => `
+            <div class="preview-response">
+              <div class="preview-resp-name" style="color:${s.color}">
+                ${escHtml(r.name) || "Anonymous Member"}${r.role ? ` · <span style="font-weight:400;color:#aaa">${escHtml(r.role)}</span>` : ""}
+              </div>
+              <div class="preview-resp-text">${escHtml(r.text)}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  });
+
+  if (!hasAny) {
+    html += `<div style="text-align:center;padding:60px 20px;color:#aaa;font-style:italic">No responses yet. Go back and add team members' thoughts.</div>`;
+  }
+
+  document.getElementById("preview-inner").innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════
+function escHtml(str) {
+  if (!str) return "";
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function formatDate(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  } catch(e) { return ""; }
+}
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => {
+  // Check if already authenticated this session
+  if (sessionStorage.getItem("ticos_auth") === "1") {
+    document.getElementById("lock-screen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    loadData();
+    renderAll();
+  }
+
+  // Password input events
+  document.getElementById("pw-btn").addEventListener("click", unlock);
+  document.getElementById("pw-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") unlock();
+  });
+
+  // Top bar buttons
+  document.getElementById("preview-btn").addEventListener("click", () => {
+    viewMode = viewMode === "build" ? "preview" : "build";
+    renderMain();
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", () => {
+    sessionStorage.removeItem("ticos_auth");
+    document.getElementById("lock-screen").style.display = "flex";
+    document.getElementById("app").style.display = "none";
+    document.getElementById("pw-input").value = "";
+  });
+});
+</script>
+</body>
+</html>
